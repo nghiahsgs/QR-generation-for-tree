@@ -32,7 +32,7 @@ virtualenv/
 .DS_Store
 
 # Project specific
-output/
+# output/
 *.png
 *.jpg
 *.jpeg
