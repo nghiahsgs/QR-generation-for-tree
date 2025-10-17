@@ -37,13 +37,16 @@ class QRCodePDFGenerator:
     def generate_qr(self, data, error_correction=qrcode.constants.ERROR_CORRECT_L):
         """Tạo một mã QR từ dữ liệu"""
         qr = qrcode.QRCode(
-            version=1,
+            version=1,  # Version 1 = 21x21 modules
             error_correction=error_correction,
             box_size=10,
             border=2,
         )
         qr.add_data(data)
         qr.make(fit=True)
+
+        # In ra thông tin matrix size
+        print(f"  QR '{data}': Version {qr.version} = {qr.modules_count}x{qr.modules_count} modules")
 
         # Tạo ảnh QR
         img = qr.make_image(fill_color="black", back_color="white")
