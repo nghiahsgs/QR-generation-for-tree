@@ -130,16 +130,16 @@ def main():
     # Dữ liệu mẫu cho QR codes
     # Bạn có thể thay đổi hoặc thêm dữ liệu tùy ý
     sample_data = [
-        "https://example.com/tree/001",
-        "https://example.com/tree/002",
-        "https://example.com/tree/003",
-        "TREE-ID-004-2024",
-        "TREE-ID-005-2024",
-        "Cây số 6 - Công viên ABC",
-        "Cây số 7 - Đường XYZ",
-        "QR Code Test 8",
-        "QR Code Test 9",
-        "QR Code Test 10",
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9",
+        "A10",
         # Thêm nhiều hơn nếu muốn test nhiều trang
     ]
 
