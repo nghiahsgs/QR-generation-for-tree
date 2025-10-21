@@ -133,7 +133,7 @@ def main():
     # Dữ liệu mẫu cho QR codes
     # Tạo URL với format: https://www.google.com/?q=A1, A2, etc.
     base_url = "https://www.google.com/?q="
-    codes = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"]
+    codes = [f"A{i}" for i in range(1, 101)]  # Tạo A1 đến A100
     sample_data = [f"{base_url}{code}" for code in codes]
     # Thêm nhiều hơn nếu muốn test nhiều trang
 
