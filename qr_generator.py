@@ -131,20 +131,11 @@ def main():
     generator = QRCodePDFGenerator()
 
     # Dữ liệu mẫu cho QR codes
-    # Bạn có thể thay đổi hoặc thêm dữ liệu tùy ý
-    sample_data = [
-        "A1",
-        "A2",
-        "A3",
-        "A4",
-        "A5",
-        "A6",
-        "A7",
-        "A8",
-        "A9",
-        "A10",
-        # Thêm nhiều hơn nếu muốn test nhiều trang
-    ]
+    # Tạo URL với format: https://www.google.com/?q=A1, A2, etc.
+    base_url = "https://www.google.com/?q="
+    codes = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"]
+    sample_data = [f"{base_url}{code}" for code in codes]
+    # Thêm nhiều hơn nếu muốn test nhiều trang
 
     print(f"\n📝 Tạo {len(sample_data)} mã QR...")
 
