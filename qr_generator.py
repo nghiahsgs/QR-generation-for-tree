@@ -23,16 +23,12 @@ class QRCodePDFGenerator:
         self.qr_size_cm = 10
         self.qr_size_points = self.qr_size_cm * 28.35
 
-        # Margin cho trang
-        self.margin = 30  # points
-
-        # Tính số QR code trên một hàng và một cột
-        self.qr_per_row = int((self.page_width - 2 * self.margin) / self.qr_size_points)
-        self.qr_per_col = int((self.page_height - 2 * self.margin) / self.qr_size_points)
+        # Số QR mỗi trang: 3 QR theo chiều dọc
+        self.qr_per_page = 3
 
         print(f"📐 Kích thước trang A4: {self.page_width:.0f} x {self.page_height:.0f} points")
         print(f"📦 Kích thước QR: {self.qr_size_cm}cm x {self.qr_size_cm}cm ({self.qr_size_points:.0f} points)")
-        print(f"📊 Số QR mỗi trang: {self.qr_per_row} x {self.qr_per_col} = {self.qr_per_row * self.qr_per_col} QR codes")
+        print(f"📊 Mỗi trang in {self.qr_per_page} QR codes, căn giữa")
 
     def generate_qr(self, data, error_correction=qrcode.constants.ERROR_CORRECT_L):
         """Tạo một mã QR từ dữ liệu"""
@@ -60,59 +56,55 @@ class QRCodePDFGenerator:
         return img
 
     def create_pdf(self, qr_data_list, output_filename="qr_codes.pdf"):
-        """Tạo PDF chứa các mã QR"""
+        """Tạo PDF chứa các mã QR - 3 QR mỗi trang, căn giữa theo chiều ngang"""
         pdf = canvas.Canvas(output_filename, pagesize=A4)
 
         # Thêm metadata
         pdf.setTitle("QR Codes for Printing")
         pdf.setAuthor("QR Generator App")
 
-        current_qr = 0
         total_qrs = len(qr_data_list)
 
-        while current_qr < total_qrs:
-            # Vẽ QR codes cho trang hiện tại
-            for row in range(self.qr_per_col):
-                for col in range(self.qr_per_row):
-                    if current_qr >= total_qrs:
-                        break
+        # Tính khoảng cách giữa các QR theo chiều dọc
+        # Chia đều chiều cao trang cho 3 QR
+        vertical_spacing = self.page_height / self.qr_per_page
 
-                    # Tạo QR code
-                    qr_img = self.generate_qr(qr_data_list[current_qr])
+        for i, qr_data in enumerate(qr_data_list):
+            # Vị trí QR trong trang (0, 1, hoặc 2)
+            position_in_page = i % self.qr_per_page
 
-                    # Convert PIL image to bytes for ReportLab
-                    img_buffer = io.BytesIO()
-                    qr_img.save(img_buffer, format='PNG')
-                    img_buffer.seek(0)
+            # Tạo QR code
+            qr_img = self.generate_qr(qr_data)
 
-                    # Tính vị trí x, y cho QR code
-                    x = self.margin + col * self.qr_size_points
-                    # Tọa độ y trong PDF tính từ bottom lên
-                    y = self.page_height - self.margin - (row + 1) * self.qr_size_points
+            # Convert PIL image to bytes for ReportLab
+            img_buffer = io.BytesIO()
+            qr_img.save(img_buffer, format='PNG')
+            img_buffer.seek(0)
 
-                    # Vẽ QR code vào PDF
-                    pdf.drawImage(ImageReader(img_buffer),
-                                x, y,
-                                width=self.qr_size_points,
-                                height=self.qr_size_points,
-                                preserveAspectRatio=True)
+            # Căn giữa theo chiều ngang
+            x = (self.page_width - self.qr_size_points) / 2
 
-                    # Thêm text bên dưới QR (optional)
-                    pdf.setFont("Helvetica", 8)
-                    text = qr_data_list[current_qr]
-                    if len(text) > 20:
-                        text = text[:17] + "..."
-                    pdf.drawString(x + 5, y - 10, text)
+            # Tính y để căn giữa trong từng phần 1/3 trang
+            section_center_y = self.page_height - (position_in_page * vertical_spacing) - (vertical_spacing / 2)
+            y = section_center_y - (self.qr_size_points / 2)
 
-                    current_qr += 1
+            # Vẽ QR code vào PDF
+            pdf.drawImage(ImageReader(img_buffer),
+                        x, y,
+                        width=self.qr_size_points,
+                        height=self.qr_size_points,
+                        preserveAspectRatio=True)
 
-            # Thêm số trang
+            # Thêm text bên dưới QR (optional)
             pdf.setFont("Helvetica", 10)
-            page_num = pdf.getPageNumber()
-            pdf.drawString(self.page_width / 2 - 20, 20, f"Trang {page_num}")
+            text = qr_data
+            if len(text) > 60:
+                text = text[:57] + "..."
+            text_width = pdf.stringWidth(text, "Helvetica", 10)
+            pdf.drawString((self.page_width - text_width) / 2, y - 20, text)
 
-            # Tạo trang mới nếu còn QR codes
-            if current_qr < total_qrs:
+            # Tạo trang mới sau mỗi 3 QR codes
+            if (i + 1) % self.qr_per_page == 0 and i < total_qrs - 1:
                 pdf.showPage()
 
         # Lưu PDF
