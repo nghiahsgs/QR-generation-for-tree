@@ -85,6 +85,7 @@ class QRCodePDFGenerator:
             x = (self.page_width - self.qr_size_points) / 2
 
             # Tính y để căn giữa trong từng phần 1/3 trang
+            # Từ trên xuống: phần 0, 1, 2
             section_center_y = self.page_height - (position_in_page * vertical_spacing) - (vertical_spacing / 2)
             y = section_center_y - (self.qr_size_points / 2)
 
