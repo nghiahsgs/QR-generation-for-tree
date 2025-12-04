@@ -2,6 +2,7 @@
 """
 QR Code Generator with PDF Export
 Tạo mã QR và xuất ra PDF chuẩn A4 để in
+QR codes link to: https://farm.agribeacon.tech/product-traceability/{qrCode}
 """
 
 import qrcode
@@ -11,7 +12,11 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 import io
 import os
+import secrets
 from datetime import datetime
+
+# Domain configuration
+BASE_URL = "https://farm.agribeacon.tech/product-traceability/"
 
 class QRCodePDFGenerator:
     def __init__(self):
@@ -115,22 +120,40 @@ class QRCodePDFGenerator:
 
         return output_filename
 
+def generate_qr_code(num_bytes=8):
+    """
+    Generate QR code string (16 hex characters) - same as backend
+    Backend uses: crypto.randomBytes(8).toString('hex')
+    Python equivalent: secrets.token_hex(8)
+    """
+    return secrets.token_hex(num_bytes)
+
+
+def generate_traceability_url(qr_code):
+    """Generate full traceability URL"""
+    return f"{BASE_URL}{qr_code}"
+
+
 def main():
     """Hàm chính để demo"""
-    print("🚀 QR Code Generator - PDF A4 Export")
+    print("🚀 QR Code Generator - Farm Traceability")
     print("-" * 50)
+    print(f"🌐 Domain: {BASE_URL}")
 
     # Khởi tạo generator
     generator = QRCodePDFGenerator()
 
-    # Dữ liệu mẫu cho QR codes
-    # Tạo URL với format: https://www.google.com/?q=A1, A2, etc.
-    base_url = "https://www.google.com/?q="
-    codes = [f"A{i}" for i in range(1, 101)]  # Tạo A1 đến A100
-    sample_data = [f"{base_url}{code}" for code in codes]
-    # Thêm nhiều hơn nếu muốn test nhiều trang
+    # Số lượng QR codes cần tạo
+    num_qr_codes = 100
+
+    # Generate QR codes giống backend (16 hex chars = 8 random bytes)
+    qr_codes = [generate_qr_code() for _ in range(num_qr_codes)]
+
+    # Tạo full URLs
+    sample_data = [generate_traceability_url(code) for code in qr_codes]
 
     print(f"\n📝 Tạo {len(sample_data)} mã QR...")
+    print(f"📌 Ví dụ URL: {sample_data[0]}")
 
     # Tạo thư mục output nếu chưa có
     if not os.path.exists("output"):
@@ -143,9 +166,21 @@ def main():
     # Tạo PDF
     generator.create_pdf(sample_data, output_file)
 
+    # Lưu danh sách QR codes ra file CSV để import vào database
+    csv_file = f"output/qr_codes_{timestamp}.csv"
+    with open(csv_file, 'w') as f:
+        f.write("qr_code,full_url\n")
+        for code, url in zip(qr_codes, sample_data):
+            f.write(f"{code},{url}\n")
+    print(f"📋 Đã lưu danh sách QR codes: {csv_file}")
+
     print(f"\n✨ Hoàn thành! File PDF đã sẵn sàng để in.")
     print(f"📍 Vị trí file: {os.path.abspath(output_file)}")
     print(f"\n💡 Tips: Khi in, chọn 'Actual Size' hoặc '100%' để giữ đúng kích thước 10x10cm")
+    print(f"\n📊 QR Code Format:")
+    print(f"   - Length: 16 hex characters")
+    print(f"   - Example: {qr_codes[0]}")
+    print(f"   - Full URL: {sample_data[0]}")
 
 if __name__ == "__main__":
     main()
